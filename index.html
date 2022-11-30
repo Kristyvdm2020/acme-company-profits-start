@@ -6,6 +6,12 @@
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
     <style>
+      section {
+        display: flex;
+      }
+      .selected {
+        font-size: 1.5rem;
+      }
     </style>
   </head>
   <body>
@@ -14,8 +20,63 @@
       //https://www.acme-api.com/api/companies
       //https://www.acme-api.com/api/companies/:id/companyProfits
       const App = () => {
+        const [companies, setCompany] = React.useState([]);
+        const [profit, setProfit] = React.useState([]);
+
+        const getCName = async() => {
+          const response = await fetch("https://www.acme-api.com/api/companies");
+          const json = await response.json();
+          //console.log(json);
+          setCompany(json);
+        }
+
+        const loadCompany = async() => {
+          const id = window.location.hash.slice(1);
+          if(id) {
+            const response = await fetch(`https://www.acme-api.com/api/companies/${id}/companyProfits`);
+            const json = await response.json();
+            //console.log(json);
+            setProfit(json);
+          } else {
+            setProfit([]);
+          }
+        }
+
+        React.useEffect(()=> {
+          getCName();
+          window.addEventListener("hashchange", loadCompany);
+          loadCompany();
+        }, []);
+        
+
         return (
-          <h1>Start Building</h1>
+          <div>
+            <h1>Companies</h1>
+            <section>
+              <ul className = "companies">
+                {
+                  companies.map(company=>{
+                    return (
+                      <li key={company.id} className={window.location.hash.slice(1) === company.id ? "selected": ""}>
+                        <a href={`#${company.id}`}>{company.name}</a>
+                      </li>
+                    )
+                  })
+                } 
+              </ul>
+              <div>
+                <ul>
+                  {
+                    profit.map(year => {
+                      return (
+                        <li key={year.id}>{year.amount}</li>
+                      )
+                    })
+                  }
+                </ul>
+              </div>
+            </section>
+          </div>
         );
       }
 
